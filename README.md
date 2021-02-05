@@ -1,6 +1,6 @@
 # Djbot
 
-This is simple music bot based on Elixir's Nostrum library. I implemented Discord Voice for Nostrum and this bot is basically a wrapper around the voice functions with a few features like queuing. The Mix project depends on my fork of Nostrum since updates to the Voice modules will usually here sooner than they will be on [the upstream repo](https://github.com/Kraigie/nostrum). It's not meant to be pretty so don't @ me.
+This is simple music bot based on Elixir's Nostrum library. I implemented Discord Voice for Nostrum and this bot is basically a wrapper around the voice functions with a few features like queuing. The Mix project depends on my fork of Nostrum since updates to the Voice modules will usually be here sooner than they will be on [the upstream repo](https://github.com/Kraigie/nostrum). It's not meant to be pretty so don't @ me.
 
 # Interacting
 
@@ -38,6 +38,8 @@ The bot should have joined your voice channel.
 
 `~play https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
+The rest of these examples will be using the same YouTube URL, but they can all be done with the `playfile` command and a filename (which support spaces).
+
 ### Play a song from a start position
 
 This will play the song the position 37.8 seconds.
@@ -61,7 +63,7 @@ This will play the song from the beginning for 15.3 seconds.
 ### Play a song at double tempo
 
 We're using the `atempo` filter to increase the tempo.
-Note that we're setting `realtime` with `-r false`.
+Note that we're turning off `realtime` with `-r false`.
 This is because "realtime" is relative to the original playback speed;
 when the audio is playing back faster than the original, ffmpeg will need to
 be told to pre-process to keep up.
@@ -78,7 +80,7 @@ there's no need for the `-r false` option, and `realtime` will default to `true`
 
 ### Play a song with BASS BOOSTED
 
-Headphone users be warned
+Headphone users be warned (There actually is a `asubboost` ffmpeg filter, but this is just for the bass boosted memes). 
 
 `~play -v 1000 -f lowpass=f=750 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
@@ -90,7 +92,7 @@ This assumes the original sample rate is 48kHz. Both pitch and tempo will be inc
 
 ### Play a song with sickening tremolo
 
-This will make it sound like when you talk into a spinning fan.
+This is the sound it makes when you talk into a spinning fan.
 
 `~play -f tremolo=d=1.0:f=12.0 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
@@ -125,8 +127,12 @@ add a vibrato for crunchy FM, add another vibrato for trippy, slow pitch bending
 
 `~play -v 3 -s 50 -f asetrate=48000*0.73 -f vibrato=d=0.05:f=698.46 -f vibrato=f=1:d=0.8 -f lowpass=f=1200 -f aphaser=in_gain=0.4:out_gain=0.5:delay=3.0:decay=0.3:speed=0.3:type=t https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
+The possibilities are literally infinite. Be sure to check out the ffmpeg [audio filters documentation](https://ffmpeg.org/ffmpeg-filters.html#Audio-Filters) to learn how to
+use the inumerable filters and their boundless options.
+
 # Troubleshooting
 
-If you upset `ffmpeg` with bad parameters or otherwise and the bot isn't playing when it's supposed to, run the `~stop` command and try playing again.
+If you upset `ffmpeg` - with bad parameters or otherwise - and the bot isn't playing when it's supposed to, run the `~stop` command and try playing again.
 
-If the sound is choppy or cuts out on occasion, it probably is at least partially due to packet loss. Try toggling `-r {true|false}` as some have better luck with on over another.
+If the sound is choppy or cuts out on occasion, it probably is at least partially due to packet loss. It could also be due to your machine's inability to process efficient.
+Try toggling `-r {true|false}` as some have better luck with one option over the other.
