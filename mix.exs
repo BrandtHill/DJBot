@@ -22,7 +22,7 @@ defmodule Djbot.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nostrum, "~> 0.4"}
+      {:nostrum, git: "https://github.com/BrandtHill/nostrum.git"}
     ]
   end
 end
