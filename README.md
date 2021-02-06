@@ -20,7 +20,9 @@ Using the `~help` command will show the following:
 
 The command prefix is hardcoded as `~`.
 The `play` and `playfile` commands will start playing right away, or will queue if something's already playing.
+
 ~~I might add a feature to start playing from a given timestamp. Stay tuned.~~
+
 I've since added the ability to pipe tons of options directly to ffmpeg through Nostrum. The `play`/`playfile` commands support these options.
 The `-f {FILTER}` option can be used multiple times in a single command. The order of the options doesn't matter
 except for order of the `filters` relative to each other since they will be chained together.
@@ -38,11 +40,11 @@ The bot should have joined your voice channel.
 
 `~play https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
-The rest of these examples will be using the same YouTube URL, but they can all be done with the `playfile` command and a filename (which support spaces).
+The rest of these examples will be using the same YouTube URL, but they can all be done with the `playfile` command and a filename (which supports spaces).
 
 ### Play a song from a start position
 
-This will play the song the position 37.8 seconds.
+This will play the song from the position 37.8 seconds.
 
 `~play -s 0:37.8 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
@@ -80,7 +82,7 @@ there's no need for the `-r false` option, and `realtime` will default to `true`
 
 ### Play a song with BASS BOOSTED
 
-Headphone users be warned (There actually is a `asubboost` ffmpeg filter, but this is just for the bass boosted memes). 
+Headphone users be warned (there actually is a `asubboost` filter, but this is just for the bass boosted memes). 
 
 `~play -v 1000 -f lowpass=f=750 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
@@ -92,7 +94,7 @@ This assumes the original sample rate is 48kHz. Both pitch and tempo will be inc
 
 ### Play a song with sickening tremolo
 
-This is the sound it makes when you talk into a spinning fan.
+This is the sound it makes when you talk into a fan.
 
 `~play -f tremolo=d=1.0:f=12.0 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
@@ -106,8 +108,8 @@ If you crank the f value you could do some basic sine wave frequency modulation.
 
 ### Play a song with some crunchy FM
 
-The vibrato modulates pitch with a since wave. If we lower the d (depth) a bit
-and set the f (frequency) to some octave of the song's root key, F in this case,
+The vibrato modulates pitch with a sine wave. If we lower the depth a bit
+and set the frequency to some octave of the song's root key - F in this case -
 we can get some pleasant, crunchy frequency modulation.
 
 `~play -f vibrato=d=0.05:f=698.46 https://www.youtube.com/watch?v=b4RJ-QGOtw4`
@@ -120,19 +122,19 @@ A chorus is similar to a phaser or flanger.
 
 ### Bringing it all together
 
-Now let's try to play something with way too many filters added together to make it sound kind of lo-fi and trippy.
+Now let's try to play something with way too many filters added together to make it sound lo-fi and trippy.
 
 This will start the song at the 50 second timestamp, slow the sample rate down to 73% of the original lowering pitch and tempo,
 add a vibrato for crunchy FM, add another vibrato for trippy, slow pitch bending, put a lowpass at 1200 Hz, add a slow phaser, and turn the volume to 3 (heavy saturation).
 
 `~play -v 3 -s 50 -f asetrate=48000*0.73 -f vibrato=d=0.05:f=698.46 -f vibrato=f=1:d=0.8 -f lowpass=f=1200 -f aphaser=in_gain=0.4:out_gain=0.5:delay=3.0:decay=0.3:speed=0.3:type=t https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
-The possibilities are literally infinite. Be sure to check out the ffmpeg [audio filters documentation](https://ffmpeg.org/ffmpeg-filters.html#Audio-Filters) to learn how to
+The possibilities are literally infinite. Be sure to check out the [ffmpeg audio filters documentation](https://ffmpeg.org/ffmpeg-filters.html#Audio-Filters) to learn how to
 use the inumerable filters and their boundless options.
 
 # Troubleshooting
 
 If you upset `ffmpeg` - with bad parameters or otherwise - and the bot isn't playing when it's supposed to, run the `~stop` command and try playing again.
 
-If the sound is choppy or cuts out on occasion, it probably is at least partially due to packet loss. It could also be due to your machine's inability to process efficient.
+If the sound is choppy or cuts out on occasion, it probably is at least partially due to packet loss. It could also be due to your machine's inability to process audio efficiently.
 Try toggling `-r {true|false}` as some have better luck with one option over the other.
