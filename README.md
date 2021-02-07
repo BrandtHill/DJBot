@@ -11,6 +11,7 @@ Using the `~help` command will show the following:
 ~leave - Make the bot leave your voice channel - ~leave
 ~pause - Pause the currently playing sound - ~pause
 ~play - Play (or queue) URLs from common service - ~play [-r true|false] [-s {START_TIME}] [-d {DURATION}] [-v {VOLUME}] [-f {FILTER}] {URL}
+~playdir - Play (or queue) directory of files - ~playdir [-r true|false] [-s {START_TIME}] [-d {DURATION}] [-v {VOLUME}] [-f {FILTER}] {DIRECTORY}
 ~playfile - Play (or queue) files from URL - ~playfile [-r true|false] [-s {START_TIME}] [-d {DURATION}] [-v {VOLUME}] [-f {FILTER}] {FILE_URL}
 ~resume - Resume the currently paused sound - ~resume
 ~skip - Skip to next queued track - ~skip
@@ -25,6 +26,8 @@ I've since added the ability to pipe tons of options directly to ffmpeg through 
 The `-f {FILTER}` option can be used multiple times in a single command. The order of the options doesn't matter
 except for order of the `filters` relative to each other since they will be chained together.
 The `-v {VOLUME}` option is a filter shortcut and will be placed at the end of the chain if other filters are supplied.
+I've added a `playdir` command which acts the same as the `playfile` command except that a file system directory will be searched recursively for
+files in common audio formats, and the results will be shuffled. If options are given, they will be applied to each of the files queued.
 
 # Examples
 
@@ -38,7 +41,7 @@ The bot should have joined your voice channel.
 
 `~play https://www.youtube.com/watch?v=b4RJ-QGOtw4`
 
-The rest of these examples will be using the same YouTube URL, but they can all be done with the `playfile` command and a filename (which support spaces).
+The rest of these examples will be using the same YouTube URL, but they can all be done with the `playfile`/`playdir` command and a filename (which support spaces).
 
 ### Play a song from a start position
 
