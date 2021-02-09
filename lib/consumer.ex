@@ -13,7 +13,6 @@ defmodule Djbot.Consumer do
       if matches = Regex.run(~r/^#{Commands.command_prefix}\s*([\w-]+)/, msg.content) do
         matches
         |> Enum.at(1)
-        |> String.downcase()
         |> Commands.dispatch(msg)
       end
     end

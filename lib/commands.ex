@@ -15,7 +15,8 @@ defmodule Djbot.Commands do
     "stop"      => {&__MODULE__.stop/2, "Stop the currently playing sound and empty queue", "stop"},
     "pause"     => {&__MODULE__.pause/2, "Pause the currently playing sound", "pause"},
     "resume"    => {&__MODULE__.resume/2, "Resume the currently paused sound", "resume"},
-    "skip"      => {&__MODULE__.skip/2, "Skip to next queued track", "skip"},
+    "skip"      => {&__MODULE__.skip/2, "Skip to next queued track", "skip [{NUM_TO_SKIP} \\ 1]"},
+    "show"      => {&__MODULE__.show/2, "Show to next few queued URLs/files", "show [{NUM_TO_SHOW} \\ 5}]"},
     "summon"    => {&__MODULE__.summon/2, "Make the bot join your voice channel", "summon"},
     "leave"     => {&__MODULE__.leave/2, "Make the bot leave your voice channel", "leave"},
   }
@@ -89,8 +90,34 @@ defmodule Djbot.Commands do
   end
 
   def skip(_cmd, msg) do
-    if Voice.playing?(msg.guild_id), do: Voice.stop(msg.guild_id)
-    #trigger_play(msg.guild_id)
+    matches = Regex.named_captures(~r/^#{@prefix}\s*(?<cmd>skip)(\s+(?<num>\d+))?/i, msg.content)
+    num = case Integer.parse(matches["num"]) do
+      :error -> 1
+      {num, _} -> num |> max(1)
+    end
+
+    q =
+      msg.guild_id
+      |> Queues.get_queue
+      |> :queue.to_list
+      |> Enum.drop(num - 1)
+      |> :queue.from_list()
+
+    Queues.set_queue(msg.guild_id, q)
+
+    ActiveStates.set_state(msg.guild_id, false)
+    Voice.stop(msg.guild_id)
+    trigger_play(msg.guild_id)
+    ActiveStates.set_state(msg.guild_id, true)
+  end
+
+  def show(_cmd, msg) do
+    matches = Regex.named_captures(~r/^#{@prefix}\s*(?<cmd>show)(\s+(?<num>\d+))?/i, msg.content)
+    num = case Integer.parse(matches["num"]) do
+      :error -> 5
+      {num, _} -> num |> max(1)
+    end
+    Api.create_message(msg.channel_id, peak_queue(msg.guild_id, num |> IO.inspect))
   end
 
   def enqueue_url(guild_id, input, type, options) do
@@ -112,6 +139,19 @@ defmodule Djbot.Commands do
       {:empty, _q} ->
         Logger.debug("DJ Bot Queue Empty for #{guild_id}")
     end
+  end
+
+  def peak_queue(guild_id, num_to_show \\ 5) do
+    guild_id
+    |> Queues.get_queue
+    |> :queue.to_list
+    |> Enum.take(num_to_show)
+    |> Enum.reduce({1, ""}, fn x, acc ->
+      {num, message} = acc
+      {input, _, _} = x
+      {num + 1, message <> "#{num}: #{input}\n"}
+    end)
+    |> elem(1)
   end
 
   def get_voice_channel_of_msg(msg) do
