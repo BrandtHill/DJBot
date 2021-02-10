@@ -74,18 +74,19 @@ defmodule Djbot.Commands do
   end
 
   def stop(_cmd, msg) do
-    ActiveStates.set_state(msg.guild_id, false)
+    ActiveStates.set_active(msg.guild_id, false)
+    ActiveStates.set_playing(msg.guild_id, nil)
     Queues.set_queue(msg.guild_id, :queue.new())
     Voice.stop(msg.guild_id)
   end
 
   def pause(_cmd, msg) do
-    ActiveStates.set_state(msg.guild_id, false)
+    ActiveStates.set_active(msg.guild_id, false)
     Voice.pause(msg.guild_id)
   end
 
   def resume(_cmd, msg) do
-    ActiveStates.set_state(msg.guild_id, true)
+    ActiveStates.set_active(msg.guild_id, true)
     Voice.resume(msg.guild_id)
   end
 
@@ -105,24 +106,30 @@ defmodule Djbot.Commands do
 
     Queues.set_queue(msg.guild_id, q)
 
-    ActiveStates.set_state(msg.guild_id, false)
+    ActiveStates.set_active(msg.guild_id, false)
     Voice.stop(msg.guild_id)
     trigger_play(msg.guild_id)
-    ActiveStates.set_state(msg.guild_id, true)
+    ActiveStates.set_active(msg.guild_id, true)
   end
 
   def show(_cmd, msg) do
     matches = Regex.named_captures(~r/^#{@prefix}\s*(?<cmd>show)(\s+(?<num>\d+))?/i, msg.content)
     num = case Integer.parse(matches["num"]) do
       :error -> 5
-      {num, _} -> num |> max(1)
+      {num, _} -> num |> max(0)
     end
-    Api.create_message(msg.channel_id, peak_queue(msg.guild_id, num |> IO.inspect))
+
+    playing = case ActiveStates.get_playing(msg.guild_id) do
+      nil -> ""
+      input -> "Now playing: #{input}\n"
+    end
+
+    Api.create_message(msg.channel_id, playing <> peak_queue(msg.guild_id, num |> IO.inspect))
   end
 
   def enqueue_url(guild_id, input, type, options) do
     q = Queues.get_queue(guild_id)
-    if :queue.len(q) == 0, do: ActiveStates.set_state(guild_id, true)
+    if :queue.len(q) == 0, do: ActiveStates.set_active(guild_id, true)
     q = :queue.in({input, type, options}, q)
     Queues.set_queue(guild_id, q)
     unless Voice.playing?(guild_id), do: trigger_play(guild_id)
@@ -133,11 +140,13 @@ defmodule Djbot.Commands do
     case :queue.out(q) do
       {{:value, {input, type, options}}, q} ->
         Logger.debug("Playing next track #{input}")
+        ActiveStates.set_playing(guild_id, input)
         Queues.set_queue(guild_id, q)
         Voice.play(guild_id, input, type, options)
 
       {:empty, _q} ->
         Logger.debug("DJ Bot Queue Empty for #{guild_id}")
+        ActiveStates.set_playing(guild_id, nil)
     end
   end
 
