@@ -14,8 +14,9 @@ Using the `~help` command will show the following:
 ~playdir - Play (or queue) directory of files - ~playdir [-r true|false] [-s {START_TIME}] [-d {DURATION}] [-v {VOLUME}] [-f {FILTER}] {DIRECTORY}
 ~playfile - Play (or queue) files from URL - ~playfile [-r true|false] [-s {START_TIME}] [-d {DURATION}] [-v {VOLUME}] [-f {FILTER}] {FILE_URL}
 ~resume - Resume the currently paused sound - ~resume
-~skip - Skip to next queued track - ~skip
-~stop - Stop the currently playing sound - ~stop
+~show - Show to next few queued URLs/files - ~show [{NUM_TO_SHOW} \ 5}]
+~skip - Skip to next queued track - ~skip [{NUM_TO_SKIP} \ 1]
+~stop - Stop the currently playing sound and empty queue - ~stop
 ~summon - Make the bot join your voice channel - ~summon
 ```
 

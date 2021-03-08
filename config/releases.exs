@@ -5,4 +5,6 @@ config :nostrum,
   num_shards: :auto,
   gateway_intents: :all
 
+config :logger, :console, metadata: [:shard, :guild, :channel]
+
 config :porcelain, :driver, Porcelain.Driver.Basic

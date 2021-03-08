@@ -42,7 +42,8 @@ defmodule Djbot.Commands do
       if Voice.ready?(msg.guild_id) do
         unless matches, do: raise "Error"
         type = if(cmd == "play", do: :ytdl, else: :url)
-        opts = parse_args(matches["args"]) |> IO.inspect()
+        opts = parse_args(matches["args"])
+        Logger.debug("Command: #{cmd}, Opts: #{inspect(opts)}")
         opts[:error] && raise "Error"
 
         if(cmd == "playdir", do: get_audio_files(opts[:input]), else: [opts[:input]])
@@ -124,7 +125,7 @@ defmodule Djbot.Commands do
       input -> "Now playing: #{input}\n"
     end
 
-    Api.create_message(msg.channel_id, playing <> peak_queue(msg.guild_id, num |> IO.inspect))
+    Api.create_message(msg.channel_id, playing <> peak_queue(msg.guild_id, num))
   end
 
   def enqueue_url(guild_id, input, type, options) do
