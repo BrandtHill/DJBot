@@ -79,8 +79,6 @@ defmodule Djbot.ListeningQueues do
 
     Task.start(fn -> VoiceCommands.parse_speech(guild_id, data) end)
 
-    IO.puts(data)
-
     {:noreply, {guilds, ports}}
   end
 
