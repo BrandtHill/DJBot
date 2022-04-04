@@ -24,3 +24,6 @@ djbot-*.tar
 
 .env
 .env.docker
+.vscode
+
+vosk/models/

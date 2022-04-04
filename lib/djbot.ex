@@ -4,12 +4,19 @@ defmodule Djbot do
   """
 
   use Application
+
   def start(_type, _args) do
-    children = [
-      Djbot.Consumer,
-      Djbot.Queues,
-      Djbot.ActiveStates
-    ]
+    children =
+      for id <- 1..System.schedulers_online(),
+          do: Supervisor.child_spec({Djbot.Consumer, []}, id: id)
+
+    children =
+      children ++
+        [
+          Djbot.PlayingQueues,
+          Djbot.ActiveStates,
+          Djbot.ListeningQueues
+        ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Djbot.Supervisor)
   end
