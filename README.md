@@ -16,9 +16,10 @@ Using the `/help` command will show the following:
 /playdir - Play (or queue) directory of files
 /playfile - Play (or queue) files from URL
 /resume - Resume the currently paused sound
-/show - Show to next few queued URLs/files
+/show - Show the next few queued URLs
 /skip - Skip to next queued track
-/stop - Stop the currently playing sound and empty queue
+/soundboard - Interact with a soundboard
+/stop - Stop the currently playing sound and purge queue
 /summon - Summon DJ Bot to your voice channel
 ```
 
@@ -35,6 +36,10 @@ files in common audio formats, and the results will be shuffled. If options are 
 # Voice Commands
 
 Most recently I've fully implemented listening to incoming audio data for Nostrum. At the time of writing the only other Discord libraries that I know of that support listening to audio are `discord.js` and someone's fork of `discord.py`. Discord does not provide documentation on voice listening, but they do use standard protocols and formats. A use case for this might be to record audio tracks to files for a meeting. I don't have a use for this, but I have added some speech recognition functionality to this project. It uses `vosk`, an open source offline speech recognition tool. By default each guild will have an instance of `vosk` started. You can say `DJ play`, and if the speech is recognized, DJ Bot will begin shuffling a hardcoded directory of music my machine. You can also say `DJ pause`, `DJ resume`, `DJ stop`, `DJ skip`, `DJ leave`, which are equivalent to the text-based commands (skip uses a value of `1`) when spoken.
+
+# Soundboard
+
+I've added a configurable soundboard for each guild. A user can enter a url which gets downloaded and transcoded into raw opus and stored in an `:ets` table and synced to disk in a `:dets` table. Showing the soundboard will send an interaction response with a button for each sound, and they can be clicked for instant audio playback.
 
 # Examples
 

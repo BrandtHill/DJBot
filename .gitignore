@@ -27,3 +27,5 @@ djbot-*.tar
 .vscode
 
 vosk/models/
+
+soundboard
