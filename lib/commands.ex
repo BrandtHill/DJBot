@@ -45,6 +45,7 @@ defmodule Djbot.Commands do
   @commands %{
     "help" => {:help, "Show all commands", []},
     "play" => {:play, "Play (or queue) URLs from common service", @play_opts},
+    "playstream" => {:play, "Play (or queue) livestream URLs from common service", @play_opts},
     "playfile" => {:play, "Play (or queue) files from URL", @play_opts},
     "playdir" => {:play, "Play (or queue) directory of files", @play_opts},
     "soundboard" => {:soundboard, "Interact with a soundboard", @soundboard_opts},
@@ -103,6 +104,7 @@ defmodule Djbot.Commands do
   end
 
   defp play_type("play"), do: :ytdl
+  defp play_type("playstream"), do: :stream
   defp play_type(_cmd), do: :url
   defp url_list("playdir", url), do: get_audio_files(url)
   defp url_list(_cmd, url), do: [url]

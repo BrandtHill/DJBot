@@ -15,6 +15,7 @@ Using the `/help` command will show the following:
 /play - Play (or queue) URLs from common service
 /playdir - Play (or queue) directory of files
 /playfile - Play (or queue) files from URL
+/playstream - Play (or queue) livestream URLs from common service
 /resume - Resume the currently paused sound
 /show - Show the next few queued URLs
 /skip - Skip to next queued track
@@ -25,13 +26,14 @@ Using the `/help` command will show the following:
 
 Each command is a Discord application command, so use tab complete to assist in entering commands and their arguments. 
 
-The `play`, `playfile`, `playdir` commands will start playing right away, or will queue if something's already playing.
+The `play`, `playfile`, `playdir`, and `playstream` commands will start playing right away, or will queue if something's already playing.
 
-I've since added the ability to pipe tons of options directly to ffmpeg through Nostrum. The `play`/`playfile`/`playdir` commands support these options.
+I've added the ability to pipe tons of options directly to ffmpeg through Nostrum. The `play`/`playfile`/`playdir`/`playstream` commands support these options.
 The `filters: {FILTER_1} {FILTER_2} ...` option takes a space-delimited list of ffmpeg filters, and their order determines how they will be chained together when passed to ffmpeg.
 The `volume: {VOLUME}` option is a filter shortcut and will be placed at the end of the chain if other filters are supplied.
 I've added a `playdir` command which acts the same as the `playfile` command except that a file system directory will be searched recursively for
 files in common audio formats, and the results will be shuffled. If options are given, they will be applied to each of the files queued.
+The `playstream` is like `play` except that URLs are opened through `streamlink` instead of `youtube-dl`, which is for livestreams.
 
 # Voice Commands
 
