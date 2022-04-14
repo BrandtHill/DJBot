@@ -23,6 +23,9 @@ defmodule Djbot.PlayingQueues do
   def push(guild_id, item),
     do: GenServer.cast(Q, {:push, guild_id, item})
 
+  def push_front(guild_id, item),
+    do: GenServer.cast(Q, {:push_front, guild_id, item})
+
   def assert(guild_id),
     do: GenServer.cast(Q, {:assert, guild_id})
 
@@ -48,6 +51,10 @@ defmodule Djbot.PlayingQueues do
 
   def handle_cast({:push, guild_id, item}, map) do
     {:noreply, Map.put(map, guild_id, :queue.in(item, q(map, guild_id)))}
+  end
+
+  def handle_cast({:push_front, guild_id, item}, map) do
+    {:noreply, Map.put(map, guild_id, :queue.in_r(item, q(map, guild_id)))}
   end
 
   def handle_cast({:assert, guild_id}, map) do

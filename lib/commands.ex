@@ -12,6 +12,7 @@ defmodule Djbot.Commands do
 
   @play_opts [
     opt.(3, "url", "Which file or URL to play", required: true),
+    opt.(5, "next", "Play this next (push to front of queue)", []),
     opt.(10, "volume", "Volume of audio (1.0 is normal)", []),
     opt.(5, "realtime", "Use realtime ffmpeg processing (true by default)", []),
     opt.(3, "start_time", "Timestamp to start audio playback at", []),
@@ -229,7 +230,10 @@ defmodule Djbot.Commands do
   end
 
   def enqueue_url(guild_id, url, type, options) do
-    PlayingQueues.push(guild_id, {url, type, options})
+    if options[:next],
+      do: PlayingQueues.push_front(guild_id, {url, type, options}),
+      else: PlayingQueues.push(guild_id, {url, type, options})
+
     unless Voice.playing?(guild_id), do: trigger_play(guild_id)
   end
 
@@ -263,6 +267,7 @@ defmodule Djbot.Commands do
   end
 
   defp parse_option(%{name: "url", value: v}), do: [url: v]
+  defp parse_option(%{name: "next", value: v}), do: [next: v]
   defp parse_option(%{name: "volume", value: v}), do: [volume: v]
   defp parse_option(%{name: "realtime", value: v}), do: [realtime: v]
   defp parse_option(%{name: "start_time", value: v}), do: [start_pos: v]

@@ -32,15 +32,17 @@ defmodule Djbot.EmbedUtils do
     end
   end
 
-  def title_from_ffprobe(url, tags) do
-    title =
-      tags["title"] ||
-        String.split(url, "/") |> List.last() |> String.replace(@f_exts, "")
+  def ffprobe_title(url, tags) do
+    tags["title"] ||
+      String.split(url, "/") |> List.last() |> String.replace(@f_exts, "")
+  end
 
-    artist = tags["artist"] || tags["album_artist"] || tags["TSO2"] || nil
+  def ffprobe_artist(tags) do
+    tags["artist"] || tags["album_artist"] || tags["TSO2"] || ""
+  end
 
-    artist = if artist, do: "#{artist} - ", else: ""
-    artist <> title
+  def ffprobe_album(tags) do
+    tags["album"] || ""
   end
 
   def do_oembed_request(oembed_url, url) do
@@ -73,7 +75,10 @@ defmodule Djbot.EmbedUtils do
             embed
 
           {:ffprobe, tags} when is_map(tags) ->
-            put_title(embed, title_from_ffprobe(url, tags))
+            embed
+            |> put_title(ffprobe_title(url, tags))
+            |> put_description(ffprobe_album(tags))
+            |> put_author(ffprobe_artist(tags), nil, nil)
 
           {:oembed, oembed} when is_map(oembed) ->
             embed
@@ -107,7 +112,7 @@ defmodule Djbot.EmbedUtils do
           put_field(embed, "#{i}:\t#{title}", url)
 
         {:ffprobe, tags} ->
-          put_field(embed, "#{i}:\t#{title_from_ffprobe(url, tags)}", url)
+          put_field(embed, "#{i}:\t#{ffprobe_artist(tags)} - #{ffprobe_title(url, tags)}", url)
 
         nil ->
           put_field(embed, "#{i}:\t#{Commands.rand_emoji()}", url)
