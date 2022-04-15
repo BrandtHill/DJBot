@@ -16,6 +16,7 @@ Using the `/help` command will show the following:
 /playdir - Play (or queue) directory of files
 /playfile - Play (or queue) files from URL
 /playstream - Play (or queue) livestream URLs from common service
+/purge - Purge elements from queue without stopping playback
 /resume - Resume the currently paused sound
 /show - Show the next few queued URLs
 /skip - Skip to next queued track

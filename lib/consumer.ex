@@ -33,8 +33,11 @@ defmodule Djbot.Consumer do
   def handle_event({:VOICE_SPEAKING_UPDATE, %SpeakingUpdate{} = update, _ws_state}) do
     Logger.debug(inspect(update, pretty: true))
 
-    if ActiveStates.is_active?(update.guild_id) and not update.speaking,
-      do: Commands.trigger_play(update.guild_id)
+    if not update.speaking, do: Commands.delete_playing_message(update.guild_id)
+
+    if ActiveStates.is_active?(update.guild_id) and not update.speaking do
+      Commands.trigger_play(update.guild_id)
+    end
   end
 
   def handle_event({:VOICE_READY, %VoiceReady{guild_id: guild_id} = _event, _v_ws_state}) do

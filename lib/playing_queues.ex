@@ -17,6 +17,9 @@ defmodule Djbot.PlayingQueues do
   def peek(guild_id, number \\ 1),
     do: GenServer.call(Q, {:peek, guild_id, number})
 
+  def len(guild_id),
+    do: GenServer.call(Q, {:len, guild_id})
+
   def empty?(guild_id),
     do: GenServer.call(Q, {:empty, guild_id})
 
@@ -32,6 +35,9 @@ defmodule Djbot.PlayingQueues do
   def purge(guild_id),
     do: GenServer.cast(Q, {:purge, guild_id})
 
+  def purge_range(guild_id, range),
+    do: GenServer.cast(Q, {:purge_range, guild_id, range})
+
   def remove(guild_id),
     do: GenServer.cast(Q, {:remove, guild_id})
 
@@ -43,6 +49,10 @@ defmodule Djbot.PlayingQueues do
   def handle_call({:peek, guild_id, number}, _from, map) do
     {front, _back} = split(q(map, guild_id), number)
     {:reply, :queue.to_list(front), map}
+  end
+
+  def handle_call({:len, guild_id}, _from, map) do
+    {:reply, :queue.len(q(map, guild_id)), map}
   end
 
   def handle_call({:empty, guild_id}, _from, map) do
@@ -63,6 +73,18 @@ defmodule Djbot.PlayingQueues do
 
   def handle_cast({:purge, guild_id}, map) do
     {:noreply, Map.put(map, guild_id, :queue.new())}
+  end
+
+  def handle_cast({:purge_range, guild_id, range}, map) do
+    new_q =
+      q(map, guild_id)
+      |> :queue.to_list()
+      |> Enum.with_index(1)
+      |> Enum.filter(fn {_elem, i} -> i not in range end)
+      |> Enum.map(fn {elem, _} -> elem end)
+      |> :queue.from_list()
+
+    {:noreply, Map.put(map, guild_id, new_q)}
   end
 
   def handle_cast({:remove, guild_id}, map) do

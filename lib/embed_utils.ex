@@ -1,6 +1,7 @@
 defmodule Djbot.EmbedUtils do
   alias Djbot.Commands
   alias Djbot.ActiveStates
+  alias Djbot.PlayingQueues
   alias Nostrum.Struct.Embed
   alias Nostrum.Voice
   import Embed
@@ -91,12 +92,12 @@ defmodule Djbot.EmbedUtils do
     end
   end
 
-  @spec create_up_next_embed(any) :: any
-  def create_up_next_embed(urls) do
+  def create_up_next_embed(urls, guild_id) do
     embed =
       %Embed{}
       |> put_color(0xAA00FF)
       |> put_title("DJ Bot Up Next")
+      |> put_footer("#{PlayingQueues.len(guild_id)} total in queue", nil)
 
     urls
     |> Task.async_stream(&get_metadata/1)

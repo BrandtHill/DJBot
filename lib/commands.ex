@@ -43,6 +43,21 @@ defmodule Djbot.Commands do
     opt.(4, "amount", "Number of queued URLs to show (default 5)", min_value: 1)
   ]
 
+  @purge_opts [
+    opt.(1, "all", "Purge the entire queue", []),
+    opt.(1, "one", "Purge a single element at the given position",
+      options: [
+        opt.(4, "index", "Which element to purge", required: true)
+      ]
+    ),
+    opt.(1, "range", "Purge a range of elements",
+      options: [
+        opt.(4, "from", "Start index to drop", required: true),
+        opt.(4, "to", "Stop index to drop", required: true)
+      ]
+    )
+  ]
+
   @commands %{
     "help" => {:help, "Show all commands", []},
     "play" => {:play, "Play (or queue) URLs from common service", @play_opts},
@@ -55,6 +70,7 @@ defmodule Djbot.Commands do
     "resume" => {:resume, "Resume the currently paused sound", []},
     "skip" => {:skip, "Skip to next queued track", @skip_opts},
     "show" => {:show, "Show the next few queued URLs", @show_opts},
+    "purge" => {:purge, "Purge elements from queue without stopping playback", @purge_opts},
     "summon" => {:summon, "Summon DJ Bot to your voice channel", []},
     "leave" => {:leave, "Tell DJ Bot to leave your voice channel", []}
   }
@@ -98,7 +114,7 @@ defmodule Djbot.Commands do
 
       if PlayingQueues.empty?(guild_id),
         do: {:msg, "Playing now #{rand_emoji()}"},
-        else: {:msg, "Audio queued #{rand_emoji()}"}
+        else: {:msg, "Audio queued, #{PlayingQueues.len(guild_id)} in queue #{rand_emoji()}"}
     else
       {:msg, "I must be summoned to a voice channel before playing."}
     end
@@ -203,11 +219,29 @@ defmodule Djbot.Commands do
         _ -> 1
       end
 
-    ActiveStates.set_active(guild_id, false)
+    ActiveStates.set_active(guild_id, true)
     PlayingQueues.pop(guild_id, num - 1)
+    playing? = Voice.playing?(guild_id)
     Voice.stop(guild_id)
-    trigger_play(guild_id)
+    unless playing?, do: trigger_play(guild_id)
     {:msg, "Skipped #{num} #{@emoji_skip}"}
+  end
+
+  def purge(%{guild_id: guild_id, data: %{options: [%{name: "all"}]}} = _interaction) do
+    PlayingQueues.purge(guild_id)
+    {:msg, "Queue purged #{rand_emoji()}"}
+  end
+
+  def purge(%{guild_id: guild_id, data: %{options: [%{name: "one", options: opts}]}}) do
+    [%{name: "index", value: index}] = opts
+    PlayingQueues.purge_range(guild_id, Range.new(index, index))
+    {:msg, "Queue purged item #{index} #{rand_emoji()}"}
+  end
+
+  def purge(%{guild_id: guild_id, data: %{options: [%{name: "range", options: opts}]}}) do
+    [%{name: "from", value: from}, %{name: "to", value: to}] = opts
+    PlayingQueues.purge_range(guild_id, Range.new(to, from))
+    {:msg, "Queue purged range from #{from} to #{to} #{rand_emoji()}"}
   end
 
   def show(%{guild_id: guild_id, data: %{options: options}} = _interaction) do
@@ -222,7 +256,7 @@ defmodule Djbot.Commands do
     up_next =
       case peek_queue(guild_id, num) do
         [] -> []
-        urls -> [EmbedUtils.create_up_next_embed(urls)]
+        urls -> [EmbedUtils.create_up_next_embed(urls, guild_id)]
       end
 
     now_playing = Task.await(task)
@@ -240,10 +274,10 @@ defmodule Djbot.Commands do
   def trigger_play(guild_id) do
     case PlayingQueues.pop(guild_id) do
       [{url, type, options}] ->
-        Logger.info("Playing next track #{url}")
+        Voice.play(guild_id, url, type, options)
         ActiveStates.set_active(guild_id, true)
         ActiveStates.set_current_url(guild_id, url)
-        Voice.play(guild_id, url, type, options)
+        Logger.info("Playing next track #{url}")
 
       [] ->
         ActiveStates.set_current_url(guild_id, nil)
