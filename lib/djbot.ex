@@ -8,17 +8,12 @@ defmodule Djbot do
   def start(_type, _args) do
     Djbot.Soundboard.setup_table()
 
-    children =
-      for id <- 1..System.schedulers_online(),
-          do: Supervisor.child_spec({Djbot.Consumer, []}, id: id)
-
-    children =
-      children ++
-        [
-          Djbot.PlayingQueues,
-          Djbot.ActiveStates,
-          Djbot.ListeningQueues
-        ]
+    children = [
+      Djbot.Consumer,
+      Djbot.PlayingQueues,
+      Djbot.ActiveStates,
+      Djbot.ListeningQueues
+    ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Djbot.Supervisor)
   end

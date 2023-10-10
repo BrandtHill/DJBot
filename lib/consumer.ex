@@ -9,8 +9,6 @@ defmodule Djbot.Consumer do
   alias Nostrum.Struct.Event.VoiceReady
   alias Nostrum.Voice
 
-  def start_link, do: Consumer.start_link(__MODULE__)
-
   def handle_event({:READY, _event, _ws_state}) do
     {:ok, commands} = Api.get_global_application_commands()
     registered_commands = Enum.map(commands, fn x -> x.name end)
