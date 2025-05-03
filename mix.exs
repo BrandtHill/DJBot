@@ -5,7 +5,7 @@ defmodule Djbot.MixProject do
     [
       app: :djbot,
       version: "0.1.0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -22,7 +22,8 @@ defmodule Djbot.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nostrum, git: "https://github.com/BrandtHill/nostrum.git"},
+      # {:nostrum, git: "https://github.com/BrandtHill/nostrum.git"},
+      {:nostrum, git: "https://github.com/kraigie/nostrum.git"},
       {:httpoison, "~> 1.8"},
       {:jason, "~> 1.3"}
     ]

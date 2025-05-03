@@ -2,10 +2,12 @@ FROM alpine
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache bash openssl libgcc libstdc++ ncurses-libs ffmpeg python3 && \
-    python3 -m ensurepip && \
-    pip3 install --no-cache --upgrade pip && \
-    pip3 install --user -U streamlink && \
-    pip3 install --user -U yt-dlp
+    apk add pipx && \
+    pipx ensurepath && \
+    pipx install streamlink && \
+    pipx install yt-dlp
+
+ENV PATH="${PATH}:/root/.local/bin"
 
 WORKDIR /app
 COPY ./_build/prod/rel/djbot ./

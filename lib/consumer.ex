@@ -1,7 +1,7 @@
 defmodule Djbot.Consumer do
   require Logger
 
-  use Nostrum.Consumer
+  @behaviour Nostrum.Consumer
 
   alias Djbot.{ActiveStates, Commands, ListeningQueues}
   alias Nostrum.Api

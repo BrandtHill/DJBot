@@ -1,7 +1,7 @@
 import Config
 
-config :nostrum,
-  token: System.get_env("DISCORD_API_KEY"),
-  youtubedl: "yt-dlp"
+config :nostrum, youtubedl: "yt-dlp"
 
-config :logger, :console, metadata: [:shard, :guild, :channel], level: :info
+config :djbot, :discord_api_key, System.fetch_env!("DISCORD_API_KEY")
+
+config :logger, :console, metadata: [:shard, :bot, :guild, :channel], level: :info
