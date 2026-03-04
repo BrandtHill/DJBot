@@ -1,6 +1,11 @@
 defmodule Djbot.Commands do
-  alias Djbot.{ActiveStates, EmbedUtils, PlayingQueues, Soundboard}
-  alias Nostrum.Struct.Component.{ActionRow, Button}
+  alias Djbot.ActiveStates
+  alias Djbot.EmbedUtils
+  alias Djbot.PlayingQueues
+  alias Djbot.Soundboard
+  alias Nostrum.Api.Message
+  alias Nostrum.Struct.Component.ActionRow
+  alias Nostrum.Struct.Component.Button
   alias Nostrum.Voice
 
   require Logger
@@ -95,9 +100,8 @@ defmodule Djbot.Commands do
 
   # Slash commands
   def dispatch(%{data: %{name: cmd}} = interaction) do
-    case Map.get(@commands, cmd) do
-      {function, _, _} -> :erlang.apply(__MODULE__, function, [interaction])
-      nil -> nil
+    with {function, _, _} <- Map.get(@commands, cmd) do
+      :erlang.apply(__MODULE__, function, [interaction])
     end
   end
 
@@ -154,17 +158,13 @@ defmodule Djbot.Commands do
   end
 
   def soundboard_play(%{guild_id: guild_id, data: %{custom_id: name}} = _interaction) do
-    case Soundboard.get_sound(guild_id, name) do
-      nil ->
-        nil
-
-      sound ->
-        delete_playing_message(guild_id)
-        active? = ActiveStates.is_active?(guild_id)
-        ActiveStates.set_active(guild_id, false)
-        Voice.stop(guild_id)
-        Voice.play(guild_id, sound, :raw)
-        ActiveStates.set_active(guild_id, active?)
+    with sound when not is_nil(sound) <- Soundboard.get_sound(guild_id, name) do
+      delete_playing_message(guild_id)
+      active? = ActiveStates.is_active?(guild_id)
+      ActiveStates.set_active(guild_id, false)
+      Voice.stop(guild_id)
+      Voice.play(guild_id, sound, :raw)
+      ActiveStates.set_active(guild_id, active?)
     end
 
     :empty
@@ -223,7 +223,7 @@ defmodule Djbot.Commands do
     PlayingQueues.pop(guild_id, num - 1)
     playing? = Voice.playing?(guild_id)
     Voice.stop(guild_id)
-    unless playing?, do: trigger_play(guild_id)
+    if not playing?, do: trigger_play(guild_id)
     {:msg, "Skipped #{num} #{@emoji_skip}"}
   end
 
@@ -268,7 +268,7 @@ defmodule Djbot.Commands do
       do: PlayingQueues.push_front(guild_id, {url, type, options}),
       else: PlayingQueues.push(guild_id, {url, type, options})
 
-    unless Voice.playing?(guild_id), do: trigger_play(guild_id)
+    if not Voice.playing?(guild_id), do: trigger_play(guild_id)
   end
 
   def trigger_play(guild_id) do
@@ -319,9 +319,8 @@ defmodule Djbot.Commands do
   end
 
   def delete_playing_message(guild_id) do
-    case ActiveStates.get_last_msg(guild_id) do
-      nil -> :noop
-      msg -> Nostrum.Api.delete_message(msg)
+    with %{} = msg <- ActiveStates.get_last_msg(guild_id) do
+      Message.delete(msg)
     end
 
     ActiveStates.set_last_msg(guild_id, nil)
@@ -330,15 +329,12 @@ defmodule Djbot.Commands do
   def create_playing_message(guild_id) do
     delete_playing_message(guild_id)
 
-    if ActiveStates.get_current_url(guild_id) do
-      case(
-        Nostrum.Api.create_message(ActiveStates.get_channel_id(guild_id),
-          embed: EmbedUtils.create_now_playing_embed(guild_id)
-        )
-      ) do
-        {:ok, msg} -> ActiveStates.set_last_msg(guild_id, msg)
-        _ -> ActiveStates.set_last_msg(guild_id, nil)
-      end
+    with url when not is_nil(url) <- ActiveStates.get_current_url(guild_id),
+         {:ok, msg} <-
+           Message.create(ActiveStates.get_channel_id(guild_id),
+             embed: EmbedUtils.create_now_playing_embed(guild_id)
+           ) do
+      ActiveStates.set_last_msg(guild_id, msg)
     end
   end
 end

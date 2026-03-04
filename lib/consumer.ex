@@ -3,14 +3,17 @@ defmodule Djbot.Consumer do
 
   @behaviour Nostrum.Consumer
 
-  alias Djbot.{ActiveStates, Commands, ListeningQueues}
-  alias Nostrum.Api
+  alias Djbot.ActiveStates
+  alias Djbot.Commands
+  alias Djbot.ListeningQueues
+  alias Nostrum.Api.Interaction
+  alias Nostrum.Api.ApplicationCommand
   alias Nostrum.Struct.Event.SpeakingUpdate
   alias Nostrum.Struct.Event.VoiceReady
   alias Nostrum.Voice
 
   def handle_event({:READY, _event, _ws_state}) do
-    {:ok, commands} = Api.get_global_application_commands()
+    {:ok, commands} = ApplicationCommand.global_commands()
     registered_commands = Enum.map(commands, fn x -> x.name end)
     all_commands = Commands.commands() |> Map.keys()
 
@@ -20,7 +23,7 @@ defmodule Djbot.Consumer do
 
       Logger.debug("Creating global command: #{name}")
 
-      Api.create_global_application_command(%{
+      ApplicationCommand.create_global_command(%{
         name: name,
         description: description,
         options: options
@@ -78,24 +81,24 @@ defmodule Djbot.Consumer do
   def handle_event(_), do: :noop
 
   defp reply_with_message(interaction, msg) do
-    Api.create_interaction_response(interaction, %{type: 4, data: %{content: msg}})
+    Interaction.create_response(interaction, %{type: 4, data: %{content: msg}})
   end
 
   defp reply_with_embeds(interaction, embeds) do
-    Api.create_interaction_response(interaction, %{type: 4, data: %{embeds: embeds}})
+    Interaction.create_response(interaction, %{type: 4, data: %{embeds: embeds}})
   end
 
   defp reply_with_components(interaction, components) do
-    Api.create_interaction_response(interaction, %{type: 4, data: %{components: components}})
+    Interaction.create_response(interaction, %{type: 4, data: %{components: components}})
   end
 
   defp reply_with_message_after(interaction, func, msg) do
-    Api.create_interaction_response(interaction, %{type: 5})
+    Interaction.create_response(interaction, %{type: 5})
     func.()
-    Api.edit_interaction_response(interaction, %{content: msg})
+    Interaction.edit_response(interaction, %{content: msg})
   end
 
   defp reply_with_empty(interaction) do
-    Api.create_interaction_response(interaction, %{type: 6})
+    Interaction.create_response(interaction, %{type: 6})
   end
 end
