@@ -1,16 +1,43 @@
-FROM alpine
+FROM elixir:1.19-alpine AS build
 
-RUN apk upgrade --no-cache && \
-    apk add --no-cache bash openssl libgcc libstdc++ ncurses-libs ffmpeg python3 && \
-    apk add pipx && \
-    pipx ensurepath && \
+ENV MIX_ENV=prod
+WORKDIR /app
+
+RUN apk add --no-cache git
+
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+COPY mix.exs mix.lock ./
+RUN mix deps.get --only prod
+RUN mix deps.compile
+
+COPY . .
+
+RUN mix release --overwrite
+
+FROM elixir:1.19-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache \
+    openssl \
+    libgcc \
+    libstdc++ \
+    ncurses-libs \
+    ffmpeg \
+    python3 \
+    bash \
+    pipx
+
+RUN pipx ensurepath && \
     pipx install streamlink && \
     pipx install yt-dlp
 
-ENV PATH="${PATH}:/root/.local/bin"
+ENV PATH="/root/.local/bin:${PATH}"
+ENV MIX_ENV=prod
 
-WORKDIR /app
-COPY ./_build/prod/rel/djbot ./
+COPY --from=build /app/_build/prod/rel/djbot ./
 
-ENTRYPOINT [ "./bin/djbot" ]
+ENTRYPOINT ["./bin/djbot"]
 CMD ["start"]
